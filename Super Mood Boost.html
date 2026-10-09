@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Super Mood Boost</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b1a;--text:#fff;--gold:#fbd000;--red:#e52521;--grn:#00a800;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Press Start 2P',ui-monospace,Menlo,monospace;font-size:10px;line-height:1.8;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#app{height:100%;max-width:480px;margin:0 auto;position:relative}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;gap:12px;padding:14px}
+.screen.on{display:flex}
+.center{margin:auto 0;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:stretch}
+h1{font-size:22px;line-height:1.5;margin:0;color:var(--gold);text-shadow:3px 3px 0 var(--red)}
+.sub{color:#9ad;font-size:10px}
+.btn{font:inherit;font-size:11px;background:var(--red);color:#fff;border:0;padding:16px 10px;cursor:pointer;box-shadow:inset -4px -4px 0 #8b0f0c,inset 4px 4px 0 #ff6a5e,0 0 0 3px #000;width:100%}
+.btn:active{transform:translateY(3px)}
+.btn.y{background:var(--gold);color:#222;box-shadow:inset -4px -4px 0 #b08a00,inset 4px 4px 0 #ffec7a,0 0 0 3px #000}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.blink{animation:b 1s steps(2) infinite}@keyframes b{50%{opacity:.2}}
+.hud{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:14px;background:#000;border:3px solid #fff;padding:1px}
+.bar i{display:block;height:100%;width:0;background:#ff6b9a;transition:width .3s steps(5)}
+#cv{width:100%;aspect-ratio:16/9;image-rendering:pixelated;border:4px solid #fff;display:block;background:#5c94fc}
+#toast{border:3px solid #fff;padding:10px;min-height:70px;background:#16163a;font-size:10px}
+#clear{position:absolute;inset:0;background:rgba(0,0,0,.85);display:none;flex-direction:column;justify-content:center;gap:18px;padding:24px;text-align:center}
+.blk{background:#c84c0c;border:3px solid #000;box-shadow:inset -4px -4px 0 #7a2b0a,inset 4px 4px 0 #f08a40;padding:16px;text-align:center;cursor:pointer;line-height:1.7}
+.blk.open{background:var(--gold);color:#222;box-shadow:inset -4px -4px 0 #b08a00,inset 4px 4px 0 #ffec7a;cursor:default}
+.q{font-size:22px;color:var(--gold)}
+.opts{display:flex;flex-direction:column;gap:14px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section class="screen on" id="s0">
+  <div class="center">
+    <div class="sub">WORLD 1-1</div>
+    <h1>SALMA<br>MOOD<br>BOOSTER</h1>
+    <canvas id="pt0" width="36" height="44" style="width:144px;image-rendering:pixelated;margin:0 auto"></canvas>
+    <div class="sub">Misi: biar salma mood lg.<br>Ambil koin, injak si bete!</div>
+    <button class="btn y blink" id="start">▶ PRESS START</button>
+    <div class="sub" style="font-size:8px">Tap JUMP / spasi buat lompat</div>
+  </div>
+</section>
+
+<section class="screen" id="s1">
+  <div class="hud"><span>MOOD</span><div class="bar"><i id="mb"></i></div><span>🪙<span id="cc">0</span></span></div>
+  <canvas id="cv" width="320" height="180"></canvas>
+  <div id="toast">Siap? Lompat pakai tombol di bawah!</div>
+  <button class="btn y" id="jump" style="margin-top:auto">▲ JUMP</button>
+  <div id="clear">
+    <h1 style="font-size:16px">WORLD<br>CLEAR!</h1>
+    <div>Bad mood berhasil dikalahkan 🎉</div>
+    <button class="btn y" id="next">▶ AMBIL PESAN</button>
+  </div>
+</section>
+
+<section class="screen" id="s2">
+  <div class="center">
+    <canvas id="pt2" width="36" height="44" style="width:120px;image-rendering:pixelated;margin:0 auto"></canvas>
+    <div class="sub">Pukul blok buat buka pesan</div>
+    <div class="opts" id="rw"></div>
+    <div id="fin" style="display:none" class="opts">
+      <div class="blk open" id="pn" style="line-height:1.9"></div>
+      <button class="btn y" data-e="1">😊 Udah senyum</button>
+      <button class="btn" data-e="2">😤 Belum, ulang</button>
+    </div>
+    <div class="blk open" id="end" style="display:none;line-height:1.9"></div>
+  </div>
+</section>
+
+</div>
+<script>
+// ===== EDIT DI SINI =====
+const MSG=["Senyum dikit dong. 1 koin = 1 senyum 😄","Fakta: kamu jago banget main ini.","Maapin nyakk td bikin badmood.","Minum air dulu habis ini 💧","Kamu udah hebat banget hari ini.","Boleh ngambek, asal jangan lupa makan 🍜","Ada yang diam-diam bangga sama kamu.","Kamu lebih keren dari Mario.","Dikit lagi! Bendera udah kelihatan 🚩","Satu koin lagi. Senyum ya? aqowkowkowk"];
+const VOUCHER=[["MAAFIN AKU NYAK","Kalo km ngambek terus pusing aku"],["MEH NGAMBEK 1 HARI?","jangannn aku gakuatttt. Serius."],["CALMA CANTIK BGT","faktaaaaaaaaaaaaa."]];
+const PENUTUP="Maaf ya sall tadi aku bikin kamu badmood. Game ini cuma punya satu tujuan: bikin kamu ga badmood lagi. Berhasil nggak?";
+const AKHIR="Yey, misi sebenarnya selesai 🎉 apasi jir gajelas bgt galih yak";
+// ========================
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const cv=$('#cv'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+const W=320,H=180,G=140,PX=60,FLAG=2500;
+let cam,py,vy,coins,run,stun,items,puffs,frame=0,aud,started=false;
+function go(n){$$('.screen').forEach(e=>e.classList.remove('on'));$('#s'+n).classList.add('on')}
+function beep(f,d,t='square'){try{aud=aud||new (window.AudioContext||window.webkitAudioContext)();const o=aud.createOscillator(),g=aud.createGain();o.type=t;o.frequency.value=f;g.gain.value=.04;o.connect(g);g.connect(aud.destination);o.start();o.stop(aud.currentTime+d)}catch(e){}}
+const HEAD="data:image/png;base64,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";
+const HN=document.createElement('canvas'),HM=document.createElement('canvas');HN.width=HN.height=HM.width=HM.height=36;
+const hi=new Image();hi.onload=()=>{HN.getContext('2d').drawImage(hi,0,0);const m=HM.getContext('2d');m.drawImage(hi,0,0);m.globalCompositeOperation='source-atop';m.fillStyle='rgba(255,40,40,.35)';m.fillRect(0,0,36,36)};hi.src=HEAD;
+const PH=48;let ex='n',exT=0;
+function head(c,x,y,e,f){
+  c.drawImage(e==='mad'?HM:HN,x,y);
+  const P=(a,b,w,h,col)=>{c.fillStyle=col;c.fillRect(x+a,y+b,w,h)};
+  if(e==='cool'){P(8,12,8,4,'#111');P(20,12,8,4,'#111');P(16,13,4,1,'#111');P(9,12,2,1,'#fff');P(21,12,2,1,'#fff')}
+  if(e==='happy'){P(6,19,4,2,'#ff5a8a');P(27,19,4,2,'#ff5a8a');const g=f%30<15?'#ffd23f':'#fff';P(1,3,1,3,g);P(0,4,3,1,g);P(33,8,1,3,g);P(32,9,3,1,g)}
+  if(e==='mad'){const r='#e52521';P(26,1,3,3,r);P(31,1,3,3,r);P(26,6,3,3,r);P(31,6,3,3,r);P(1,10,2,4,'#7fd4ff')}
+  if(e==='win'){const g='#fbd000';P(11,-3,3,4,g);P(17,-4,3,5,g);P(23,-3,3,4,g);P(11,1,15,3,g);P(17,1,2,2,'#e52521')}
+}
+function body(c,x,y,f,air){
+  const sw=air?0:(f%16<8?2:-2),F=(a,b,w,h,col)=>{c.fillStyle=col;c.fillRect(x+a,y+b,w,h)};
+  F(7,air?31:35,3,8,'#d9d9d9');F(26,air?31:35,3,8,'#d9d9d9');
+  F(9,33,18,10,'#d9d9d9');F(13,33,10,9,'#14101f');
+  F(12,43,5,3,'#2d3e7a');F(19,43,5,3,'#2d3e7a');
+  F(11+sw,45,7,3,'#e52521');F(19-sw,45,7,3,'#e52521');
+}
+function reset(){
+  cam=0;py=G-PH;vy=0;coins=0;ex='n';exT=0;stun=0;run=true;items=[];puffs=[];
+  for(let i=0;i<10;i++)items.push({t:'c',x:260+i*210,y:[84,58,84,48][i%4],on:1});
+  for(let i=0;i<7;i++)items.push({t:'e',x:370+i*330,on:1});
+  $('#mb').style.width='0';$('#cc').textContent=0;$('#clear').style.display='none';
+  $('#toast').textContent='Siap? Lompat pakai tombol di bawah!';
+}
+function jump(){if(!run)return;if(py>=G-PH){vy=-7.4;beep(330,.12)}}
+const hit=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+function step(){
+  if(!run)return;
+  if(exT>0&&--exT===0)ex='n';
+  if(stun>0)stun--;else cam+=1.9;
+  vy+=.42;py+=vy;if(py>=G-PH){py=G-PH;vy=0}
+  const pr={x:PX,y:py+8,w:20,h:PH-8};
+  for(const o of items){
+    if(!o.on)continue;const sx=o.x-cam;if(sx<-30||sx>350)continue;
+    if(o.t==='c'){
+      if(hit(pr,{x:sx-6,y:o.y-7,w:12,h:14})){o.on=0;coins++;beep(988,.06);beep(1319,.15);ex='happy';exT=70;
+        $('#cc').textContent=coins;$('#mb').style.width=coins*10+'%';$('#toast').textContent=MSG[coins-1]}
+    }else if(hit(pr,{x:sx,y:G-16,w:16,h:16})){
+      o.on=0;puffs.push({x:sx,t:12});
+      if(vy>0&&py+PH<=G-6){vy=-5.5;beep(520,.1);ex='cool';exT=70;$('#toast').textContent='Bad mood diinjak! 💥'}
+      else{stun=25;beep(120,.2,'sawtooth');ex='mad';exT=50;$('#toast').textContent='Aduh kesandung. Santai, lanjut aja 😤'}
+    }
+  }
+  if(cam>=FLAG-PX){run=false;ex='win';exT=0;beep(784,.15);setTimeout(()=>beep(1047,.3),180);setTimeout(()=>{$('#clear').style.display='flex'},700)}
+}
+function cloud(x,y){ctx.fillRect(x,y+6,32,10);ctx.fillRect(x+6,y,20,8)}
+function draw(){
+  ctx.fillStyle='#5c94fc';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';for(let i=0;i<6;i++)cloud(((i*170-cam*.3)%1020+1020)%1020-60,18+(i*37%50));
+  ctx.fillStyle='#00a800';for(let i=0;i<4;i++){const x=((i*260-cam*.5)%1040+1040)%1040-110;ctx.fillRect(x,G-24,100,24);ctx.fillRect(x+16,G-40,68,16);ctx.fillRect(x+32,G-52,36,12)}
+  ctx.fillStyle='#c84c0c';ctx.fillRect(0,G,W,H-G);
+  ctx.fillStyle='#8a2f05';for(let x=-(cam%16);x<W;x+=16)ctx.fillRect(x,G+6,2,H-G);for(let y=G+22;y<H;y+=16)ctx.fillRect(0,y,W,2);
+  ctx.fillStyle='#58d854';ctx.fillRect(0,G,W,6);
+  const fx=FLAG-cam;ctx.fillStyle='#fff';ctx.fillRect(fx,G-90,3,90);ctx.fillStyle='#e52521';ctx.fillRect(fx-16,G-88,16,10);
+  for(const o of items){
+    if(!o.on)continue;const sx=o.x-cam;if(sx<-30||sx>350)continue;
+    if(o.t==='c'){const w=Math.max(2,Math.abs(Math.cos(frame/10))*8);ctx.fillStyle='#fbd000';ctx.fillRect(sx-w/2,o.y-7,w,14);ctx.fillStyle='#b08a00';ctx.fillRect(sx-w/2,o.y-7,Math.min(2,w),14)}
+    else{const b=frame%30<15?0:1;ctx.fillStyle='#7a3fa0';ctx.fillRect(sx,G-16,16,11);ctx.fillRect(sx+2,G-6,12,2);ctx.fillStyle='#fff';ctx.fillRect(sx+3,G-12,4,4);ctx.fillRect(sx+9,G-12,4,4);
+      ctx.fillStyle='#000';ctx.fillRect(sx+5,G-11,2,3);ctx.fillRect(sx+9,G-11,2,3);ctx.fillRect(sx+2,G-14,6,2);ctx.fillRect(sx+8,G-14,6,2);ctx.fillStyle='#222';ctx.fillRect(sx+(b?0:2),G-4,6,4);ctx.fillRect(sx+(b?10:8),G-4,6,4)}
+  }
+  for(const p of puffs){p.t--;ctx.fillStyle='#fff';ctx.fillRect(p.x+2,G-18-(12-p.t),4,4);ctx.fillRect(p.x+10,G-18-(12-p.t),4,4);ctx.fillRect(p.x+6,G-24-(12-p.t),4,4)}
+  puffs=puffs.filter(p=>p.t>0);
+  if(!(stun>0&&frame%6<3)){const air=py<G-PH,by=air?0:(frame%16<8?0:1);body(ctx,PX-8,py+by,frame,air);head(ctx,PX-8,py+by,ex,frame)}
+}
+let last=0,acc=0;
+function loop(t){acc+=Math.min(t-last,100);last=t;while(acc>=16.67){step();acc-=16.67;frame++}draw();requestAnimationFrame(loop)}
+$('#start').onclick=()=>{reset();go(1);beep(660,.1);if(!started){started=true;requestAnimationFrame(t=>{last=t;loop(t)})}};
+$('#jump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+addEventListener('keydown',e=>{if(['Space','ArrowUp','KeyW'].includes(e.code)){e.preventDefault();jump()}});
+$('#next').onclick=()=>{go(2);chest()};
+let opened=0,built=false;
+function chest(){
+  if(built)return;built=true;
+  VOUCHER.forEach(([t,d])=>{
+    const b=document.createElement('div');b.className='blk';b.textContent='?';
+    b.onclick=()=>{if(b.classList.contains('open'))return;b.classList.add('open');b.innerHTML='🎟️ '+t+'<br><span style="font-size:8px">'+d+'</span>';beep(988,.08);beep(1319,.2);
+      if(++opened===VOUCHER.length){$('#pn').textContent=PENUTUP;$('#fin').style.display='flex'}};
+    $('#rw').appendChild(b);
+  });
+}
+$$('#fin [data-e]').forEach(b=>b.onclick=()=>{
+  if(b.dataset.e==='2'){reset();go(1);return}
+  $('#fin').style.display='none';$('#end').style.display='block';$('#end').textContent=AKHIR;conf();
+});
+let pf=0;setInterval(()=>{pf++;const L=['n','cool','happy','n'];
+  [['pt0',L[(pf/12|0)%4]],['pt2','win']].forEach(([id,e])=>{const el=document.getElementById(id);if(!el||!el.offsetParent)return;const c=el.getContext('2d');c.clearRect(0,0,36,44);head(c,0,8,e,pf*3)})},100);
+function conf(){for(let i=0;i<40;i++){const p=document.createElement('div');p.textContent=['⭐','🪙','💗'][i%3];
+  p.style.cssText='position:fixed;top:-20px;left:'+Math.random()*100+'vw;font-size:20px;pointer-events:none;transition:transform 2.4s ease-in,opacity 2.4s;';
+  document.body.appendChild(p);requestAnimationFrame(()=>{p.style.transform='translateY(110vh) rotate('+Math.random()*360+'deg)';p.style.opacity=0});setTimeout(()=>p.remove(),2600)}}
+</script>
+</body>
+</html>
